@@ -75,13 +75,13 @@ j <- 1 # counter for retrieving date at row in for loop
 k <- 1 #row in missing_data table
 hr_counter <- 24 
 
-for (i in weather_data$Wind.Spd..km.h.){
+for (i in weather_data$Rel.Hum....){
   if (!(hr_counter==0)){
     hr_counter <- hr_counter - 1
   } else {
     #write to missing_data_table
-    missing_data[k,3] <- cur_date
-    missing_data[k,4] <- (missing_data_count/24)*100
+    missing_data[k,1] <- cur_date
+    missing_data[k,2] <- (missing_data_count/24)*100
     k <- k + 1
     #reset current date, counters
     cur_date <- weather_data$Date.Time..LST.[j]
@@ -94,10 +94,26 @@ for (i in weather_data$Wind.Spd..km.h.){
   j <- j + 1
 }
 
+days_missing <- colSums(missing_data != 0, na.rm=T)
+over_forty <- colSums(missing_data >= 40.0, na.rm=T)
+
+#add num days missing
+missing_data[nrow(missing_data)+1, 1] <- "Num. Missing days"
+missing_data[nrow(missing_data),2] <- days_missing[2]
+missing_data[nrow(missing_data),3] <- "Num. Missing days"
+missing_data[nrow(missing_data),4] <- days_missing[4]
+
+#add num days missing >40% data
+missing_data[nrow(missing_data)+1, 1] <- "Missing >40%"
+missing_data[nrow(missing_data),2] <- over_forty[2]
+missing_data[nrow(missing_data),3] <- "Missing >40%"
+missing_data[nrow(missing_data),4] <- over_forty[4]
+
+#add total percent missing
 missing_data[nrow(missing_data)+1,1] <- "% Total Missing"
-missing_data[nrow(missing_data),2] <- missing_data_RH/nrow(weather_data)*100
+missing_data[nrow(missing_data),2] <- (missing_data_RH/nrow(weather_data))*100
 missing_data[nrow(missing_data),3] <- "% Total Missing"
-missing_data[nrow(missing_data),4] <- missing_data_WS/nrow(weather_data)*100
+missing_data[nrow(missing_data),4] <- (missing_data_WS/nrow(weather_data))*100
 
 #write to file
 file_name <- paste("missing_data_",weather_data$Station.Name[1],".csv", sep="")
